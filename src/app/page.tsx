@@ -5,15 +5,16 @@ import React, { useMemo, useState } from "react";
 import ExportForm from "@/components/ExportForm";
 import CsvTable from "@/components/CsvTable";
 import ColumnToggle from "@/components/ColumnToggle";
-import { downloadCsv as downloadCsvUtil } from "@/lib/csv";
+import { downloadCsv as downloadCsvUtil, type CsvRow } from "@/lib/csv";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Home() {
   const [csvText, setCsvText] = useState("");
-  const [rows, setRows] = useState<Record<string, any>[]>([]);
+  const [rows, setRows] = useState<CsvRow[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [visible, setVisible] = useState<string[]>([]);
 
-  function handleLoad(text: string, nextRows: any[], nextHeaders: string[]) {
+  function handleLoad(text: string, nextRows: CsvRow[], nextHeaders: string[]) {
     setCsvText(text);
     setRows(nextRows);
     setHeaders(nextHeaders);
@@ -23,13 +24,15 @@ export default function Home() {
   const fileSizeKB = useMemo(() => Math.round((csvText.length || 0) / 1024), [csvText]);
 
   function downloadSelected() {
-    if (!rows.length) return;
-    const out = rows.map((r) => {
-      const o: Record<string, any> = {};
-      visible.forEach((h) => (o[h] = r[h] ?? ""));
+    if (rows.length === 0) return;
+    const out: CsvRow[] = rows.map((r) => {
+      const o: CsvRow = {};
+      visible.forEach((h) => {
+        o[h] = r[h] ?? "";
+      });
       return o;
     });
-    downloadCsvUtil(out, "export.csv");
+    downloadCsvUtil(out, "wp-content-export.csv");
   }
 
   return (
@@ -42,6 +45,10 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Image src="/vercel.svg" alt="Vercel" width={48} height={16} />
+            {/* Theme toggle */}
+            <div className="ml-2">
+              <ThemeToggle />
+            </div>
           </div>
         </header>
 

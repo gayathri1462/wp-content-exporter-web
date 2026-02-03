@@ -12,6 +12,18 @@ npm install
 npm run dev
 ```
 
+Run tests
+
+```bash
+npm run test
+```
+
+Build
+
+```bash
+npm run build
+```
+
 Features
 
 - Fetch CSV from public or Bearer-protected endpoints
@@ -23,6 +35,27 @@ Deployment
 
 1. Push to GitHub (create repo `wp-content-exporter-web`)
 2. Import the repo in Vercel — Next.js is auto-detected
+
+CI & GitHub
+
+Add a GitHub Actions workflow to run `npm run build` and `npm run test` on PRs. Vercel will handle deployment when you connect the repo.
+
+Push to GitHub
+
+```bash
+# create repo on GitHub (replace <username>)
+git remote add origin https://github.com/<username>/wp-content-exporter-web.git
+git branch -M main
+git push -u origin main
+```
+
+Deploy to Vercel
+
+1. Go to https://vercel.com and import your GitHub repo.
+2. Framework should auto-detect Next.js; leave defaults and deploy.
+3. Add any environment variables (none required for public endpoints).
+
+If you want me to push the repo for you, provide the GitHub repo URL and I'll push the `main` branch.
 
 Notes
 

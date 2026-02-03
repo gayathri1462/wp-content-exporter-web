@@ -1,16 +1,17 @@
 "use client";
 
 import React from "react";
+import type { CsvRow } from "@/lib/csv";
 
 type Props = {
-  rows: Record<string, any>[];
+  rows: CsvRow[];
   headers: string[];
   visibleColumns: string[];
   limit?: number;
 };
 
 export default function CsvTable({ rows, headers, visibleColumns, limit = 50 }: Props) {
-  if (!rows || rows.length === 0) {
+  if (rows.length === 0) {
     return <div className="rounded-2xl bg-white p-6">No data loaded</div>;
   }
 
@@ -36,7 +37,7 @@ export default function CsvTable({ rows, headers, visibleColumns, limit = 50 }: 
             <tr key={idx} className="hover:bg-slate-50">
               {headers.filter((h) => visibleColumns.includes(h)).map((h) => (
                 <td key={h} className="border-b px-3 py-2 text-sm">
-                  {String(row[h] ?? "")}
+                  {row[h] ?? ""}
                 </td>
               ))}
             </tr>

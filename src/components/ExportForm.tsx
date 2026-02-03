@@ -1,16 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { parseCsv } from "@/lib/csv";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import Switch from "@/components/ui/Switch";
+import Label from "@/components/ui/Label";
+import Card from "@/components/ui/Card";
+import { parseCsv, type CsvRow } from "@/lib/csv";
+import { fetchCsvFromEndpoint } from "@/lib/wpe";
 
 type Props = {
-  onLoad: (text: string, rows: any[], headers: string[]) => void;
+  onLoad: (text: string, rows: CsvRow[], headers: string[]) => void;
 };
 
 export default function ExportForm({ onLoad }: Props) {
   const [endpoint, setEndpoint] = useState("");
   const [useAuth, setUseAuth] = useState(false);
   const [token, setToken] = useState("");
+  const [usePackage, setUsePackage] = useState(false);
+  const [postType, setPostType] = useState("");
+  const [fieldsText, setFieldsText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,17 +27,19 @@ export default function ExportForm({ onLoad }: Props) {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(endpoint, {
-        headers: useAuth && token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+      const opts = {
+        token: useAuth ? token : undefined,
+        usePackage: usePackage || undefined,
+        postType: postType || undefined,
+        fields: fieldsText ? fieldsText.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
+      };
 
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-
-      const text = await res.text();
+      const text = await fetchCsvFromEndpoint(endpoint, opts);
       const { rows, headers } = parseCsv(text);
       onLoad(text, rows, headers);
-    } catch (err: any) {
-      setError(err?.message ?? "Failed to fetch CSV");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message || "Failed to fetch CSV");
     } finally {
       setLoading(false);
     }
@@ -43,59 +54,63 @@ export default function ExportForm({ onLoad }: Props) {
       try {
         const { rows, headers } = parseCsv(text);
         onLoad(text, rows, headers);
-      } catch (e: any) {
-        setError(e.message ?? "Invalid CSV");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        setError(message || "Invalid CSV");
       }
     };
     reader.readAsText(file);
   }
 
   return (
-    <div className="w-full rounded-2xl bg-white p-6 shadow">
-      <label className="block text-sm font-medium">Endpoint (URL)</label>
-      <input
-        className="mt-2 w-full rounded-md border px-3 py-2"
-        value={endpoint}
-        onChange={(e) => setEndpoint(e.target.value)}
-        placeholder="https://example.com/wp-json/wp/v2/posts?export=csv"
-      />
+    <Card>
+      <div className="space-y-3">
+        <Label>Endpoint (URL)</Label>
+        <Input
+          value={endpoint}
+          onChange={(e) => setEndpoint(e.target.value)}
+          placeholder="https://example.com/wp-json/wp/v2/posts?export=csv"
+        />
 
-      <div className="mt-3 flex items-center gap-3">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={useAuth}
-            onChange={(e) => setUseAuth(e.target.checked)}
-          />
-          <span className="text-sm">Use Bearer token</span>
-        </label>
-        {useAuth && (
-          <input
-            className="ml-auto w-64 rounded-md border px-3 py-2"
-            placeholder="Token"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            type="password"
-          />
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="flex items-center gap-3">
+            <Switch checked={useAuth} onChange={setUseAuth} label="Requires Authentication" />
+            {useAuth && (
+              <Input
+                type="password"
+                placeholder="Bearer token"
+                className="w-64"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+              />
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Switch checked={usePackage} onChange={setUsePackage} label="Use package export" />
+          </div>
+        </div>
+
+        {usePackage && (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <Input label="Post type" value={postType} onChange={(e) => setPostType(e.target.value)} placeholder="posts" />
+            <Input label="Fields (comma separated)" value={fieldsText} onChange={(e) => setFieldsText(e.target.value)} placeholder="title.rendered,slug,date" />
+          </div>
         )}
+
+        <div className="flex items-center gap-3">
+          <Button onClick={fetchCsv} disabled={loading || !endpoint} variant="primary">
+            {loading ? "Fetching…" : "Fetch CSV"}
+          </Button>
+
+          <label className="ml-2 flex cursor-pointer items-center gap-2 rounded border px-3 py-2">
+            Upload CSV
+            <input className="hidden" type="file" accept=".csv,text/csv" onChange={handleFile} />
+          </label>
+        </div>
+
+        {error && <div className="text-sm text-red-600">{error}</div>}
       </div>
-
-      <div className="mt-4 flex items-center gap-3">
-        <button
-          onClick={fetchCsv}
-          disabled={loading || !endpoint}
-          className="rounded bg-sky-600 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Fetching…" : "Fetch CSV"}
-        </button>
-
-        <label className="ml-2 flex cursor-pointer items-center gap-2 rounded border px-3 py-2">
-          Upload CSV
-          <input className="hidden" type="file" accept=".csv,text/csv" onChange={handleFile} />
-        </label>
-      </div>
-
-      {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
-    </div>
+    </Card>
   );
 }
