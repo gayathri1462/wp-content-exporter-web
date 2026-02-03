@@ -2,7 +2,7 @@
 
 **WP Content Exporter** is a premium, high-performance web interface for extracting and previewing content from WordPress sites via the REST API. Built with a **Balanced Modern** aesthetic, it offers a seamless, app-like experience for developers and content managers.
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=vercel)](https://wp-content-exporter-webpage.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge&logo=vercel)](https://wp-content-exporter-web.vercel.app/)
 [![NPM Package](https://img.shields.io/badge/NPM-Package-red?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/wp-content-exporter)
 
 ## ✨ Features
@@ -53,12 +53,26 @@ npm run test
 - **State Management**: React Hooks & Context
 - **Testing**: [Vitest](https://vitest.dev) & React Testing Library
 
-## 🎨 Design Philosophy
+## 🚀 Deployment
 
-This project follows the principles of **Balanced Modernity**:
-- **Contrast**: Full visual clarity with 1.0 opacity on all essential elements.
-- **Structure**: Locked layouts that eliminate page-level scrolling in favor of internal scrolling components.
-- **Motion**: Subtle entrance and interaction animations to provide a premium, reactive feel.
+The easiest way to deploy your **WP Content Exporter** is using the [Vercel Platform](https://vercel.com/new).
+
+### 1. Push to GitHub
+Ensure your latest changes are pushed to your GitHub repository:
+```bash
+git add .
+git commit -m "Ready for deployment"
+git push origin main
+```
+
+### 2. Deploy to Vercel
+1. Go to [Vercel](https://vercel.com) and log in.
+2. Click **"New Project"**.
+3. Import your `wp-content-exporter-web` repository.
+4. Vercel will automatically detect **Next.js**.
+5. Click **"Deploy"**.
+
+Your site will be live on a `vercel.app` domain in minutes!
 
 ---
 
