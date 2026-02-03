@@ -5,7 +5,7 @@ import SiteConfigForm from "@/components/SiteConfigForm";
 import PostTypeSelector from "@/components/PostTypeSelector";
 import FieldSelector from "@/components/FieldSelector";
 import ExportButton from "@/components/ExportButton";
-import { fetchAllPosts, inferFieldsFromPost } from "@/lib/exporterUtils";
+import { fetchAllPosts, inferFieldsFromPost, flattenObject, type JsonObject } from "@/lib/exporterUtils";
 
 type Step = "site" | "postType" | "fields" | "export";
 
@@ -15,6 +15,7 @@ export default function ExporterPage() {
   const [token, setToken] = useState("");
   const [postType, setPostType] = useState("");
   const [fields, setFields] = useState<string[]>([]);
+  const [sampleData, setSampleData] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("");
 
   async function handleSiteConfig(ep: string, hdrs: Record<string, string>) {
@@ -34,7 +35,9 @@ export default function ExporterPage() {
       const sample = await fetchAllPosts(endpoint, pt, headers, 1);
       if (sample.length === 0) throw new Error("No posts found");
       const inferred = inferFieldsFromPost(sample[0]);
+      const flattened = flattenObject(sample[0]);
       setFields(inferred);
+      setSampleData(flattened);
       setStep("fields");
       setStatus("");
     } catch (err) {
@@ -74,7 +77,7 @@ export default function ExporterPage() {
           {(step === "fields" || step === "export") && (
             <div>
               <h2 className="text-lg font-semibold mb-3">✓ Post Type: {postType}</h2>
-              <FieldSelector fields={fields} onSelect={handleFieldsSelect} />
+              <FieldSelector fields={fields} sampleData={sampleData} onSelect={handleFieldsSelect} />
             </div>
           )}
 
