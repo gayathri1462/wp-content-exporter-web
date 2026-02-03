@@ -1,81 +1,94 @@
 "use client";
 
-import Image from "next/image";
-import React, { useMemo, useState } from "react";
-import ExportForm from "@/components/ExportForm";
-import CsvTable from "@/components/CsvTable";
-import ColumnToggle from "@/components/ColumnToggle";
-import { downloadCsv as downloadCsvUtil, type CsvRow } from "@/lib/csv";
-import ThemeToggle from "@/components/ThemeToggle";
+import React, { useState } from "react";
+import SiteConfigForm from "@/components/SiteConfigForm";
+import PostTypeSelector from "@/components/PostTypeSelector";
+import FieldSelector from "@/components/FieldSelector";
+import ExportButton from "@/components/ExportButton";
+import { fetchAllPosts, inferFieldsFromPost, type JsonObject } from "@/lib/exporterUtils";
 
-export default function Home() {
-  const [csvText, setCsvText] = useState("");
-  const [rows, setRows] = useState<CsvRow[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [visible, setVisible] = useState<string[]>([]);
+type Step = "site" | "postType" | "fields" | "export";
 
-  function handleLoad(text: string, nextRows: CsvRow[], nextHeaders: string[]) {
-    setCsvText(text);
-    setRows(nextRows);
-    setHeaders(nextHeaders);
-    setVisible(nextHeaders);
+export default function ExporterPage() {
+  const [step, setStep] = useState<Step>("site");
+  const [endpoint, setEndpoint] = useState("");
+  const [headers, setHeaders] = useState<Record<string, string>>({});
+  const [postType, setPostType] = useState("");
+  const [fields, setFields] = useState<string[]>([]);
+  const [rows, setRows] = useState<JsonObject[]>([]);
+  const [status, setStatus] = useState("");
+
+  async function handleSiteConfig(ep: string, hdrs: Record<string, string>) {
+    setEndpoint(ep);
+    setHeaders(hdrs);
+    setStep("postType");
   }
 
-  const fileSizeKB = useMemo(() => Math.round((csvText.length || 0) / 1024), [csvText]);
+  async function handlePostTypeSelect(pt: string) {
+    setPostType(pt);
+    setStatus("Fetching sample post…");
+    try {
+      const sample = await fetchAllPosts(endpoint, pt, headers, 1);
+      if (sample.length === 0) throw new Error("No posts found");
+      const inferred = inferFieldsFromPost(sample[0]);
+      setFields(inferred);
+      setStep("fields");
+      setStatus("");
+    } catch (err) {
+      setStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
 
-  function downloadSelected() {
-    if (rows.length === 0) return;
-    const out: CsvRow[] = rows.map((r) => {
-      const o: CsvRow = {};
-      visible.forEach((h) => {
-        o[h] = r[h] ?? "";
-      });
-      return o;
-    });
-    downloadCsvUtil(out, "wp-content-export.csv");
+  async function handleFieldsSelect(selected: string[]) {
+    setStatus("Fetching all posts…");
+    try {
+      const all = await fetchAllPosts(endpoint, postType, headers);
+      setRows(all);
+      setFields(selected);
+      setStep("export");
+      setStatus("");
+    } catch (err) {
+      setStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
-      <main className="mx-auto max-w-6xl">
-        <header className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">WP Content Exporter</h1>
-            <p className="text-sm text-zinc-600">Preview and download CSV from WordPress endpoints</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Image src="/vercel.svg" alt="Vercel" width={48} height={16} />
-            {/* Theme toggle */}
-            <div className="ml-2">
-              <ThemeToggle />
-            </div>
-          </div>
+      <main className="mx-auto max-w-2xl">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold">WordPress Content Exporter</h1>
+          <p className="text-gray-600 mt-2">Export WordPress posts to CSV with custom fields</p>
         </header>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="col-span-1">
-            <ExportForm onLoad={handleLoad} />
-            <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-white p-4 shadow">
-                <div className="text-sm">Rows: <strong>{rows.length}</strong></div>
-                <div className="text-sm">Columns: <strong>{headers.length}</strong></div>
-                <div className="text-sm">Size: <strong>{fileSizeKB} KB</strong></div>
-                <button
-                  onClick={downloadSelected}
-                  className="mt-3 w-full rounded bg-sky-600 px-4 py-2 text-white"
-                >
-                  Download CSV
-                </button>
-              </div>
-              <div>
-                <ColumnToggle headers={headers} visible={visible} onChange={setVisible} />
-              </div>
-            </div>
-          </div>
+        {status && <div className="mb-4 p-3 bg-blue-50 rounded-md text-sm text-blue-700">{status}</div>}
 
-          <div className="col-span-2">
-            <CsvTable rows={rows} headers={headers} visibleColumns={visible} limit={50} />
-          </div>
+        <div className="space-y-6">
+          {step === "site" && <SiteConfigForm onSubmit={handleSiteConfig} />}
+
+          {(step === "postType" || step === "fields" || step === "export") && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3">✓ Site Connected</h2>
+              <PostTypeSelector
+                endpoint={endpoint}
+                headers={headers}
+                onSelect={handlePostTypeSelect}
+              />
+            </div>
+          )}
+
+          {(step === "fields" || step === "export") && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3">✓ Post Type: {postType}</h2>
+              <FieldSelector fields={fields} onSelect={handleFieldsSelect} />
+            </div>
+          )}
+
+          {step === "export" && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3">✓ Ready to Export</h2>
+              <ExportButton rows={rows} fields={fields} />
+            </div>
+          )}
         </div>
       </main>
     </div>
