@@ -1,0 +1,16 @@
+{
+    "name": "WP Content Exporter",
+    "short_name": "WP Exporter",
+    "description": "Export your WordPress content to CSV with ease.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3b82f6",
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "1024x1024",
+            "type": "image/png"
+        }
+    ]
+}
