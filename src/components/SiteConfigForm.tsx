@@ -95,7 +95,7 @@ export default function SiteConfigForm({ onSubmit }: Props) {
             className="font-medium"
           />
 
-          <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50 space-y-4">
+          <div className="p-5 rounded-2xl bg-secondary/30 border border-border/50 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Key size={16} className="text-primary" />
@@ -128,7 +128,7 @@ export default function SiteConfigForm({ onSubmit }: Props) {
         )}
 
         {connectionOk && (
-          <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 text-green-600 text-sm animate-in zoom-in-95">
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-600 text-sm animate-in zoom-in-95 shadow-sm shadow-green-500/5">
             <CheckCircle2 size={16} />
             <p className="font-semibold">Connection verified successfully!</p>
           </div>

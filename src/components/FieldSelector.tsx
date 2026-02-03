@@ -71,37 +71,42 @@ export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search for fields (e.g. title, author, meta...)"
-            className="w-full border border-border/50 bg-background/50 pl-11 pr-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
+            className="w-full rounded-xl border border-border/50 bg-background/50 pl-11 pr-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div className="md:col-span-3 space-y-2">
-            <div className="flex justify-between items-center mb-1 px-1">
+          <div className="md:col-span-3 flex flex-col">
+            <div className="flex justify-between items-center mb-2 px-1">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Available Fields</label>
-              <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5">{selected.size} / {fields.length}</span>
+              <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{selected.size} / {fields.length}</span>
             </div>
-            <div className="glass bg-background/40 border-border/30 p-2 max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="glass bg-background border-border/50 rounded-2xl p-2 h-[400px] overflow-y-auto custom-scrollbar shadow-inner">
               {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground gap-2">
-                  <Search size={32} className="opacity-20" />
-                  <p className="text-sm">No fields found for &quot;{search}&quot;</p>
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground gap-2 animate-in fade-in duration-500">
+                  <Search size={32} />
+                  <p className="text-sm font-medium">No fields found for &quot;{search}&quot;</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-1">
-                  {filtered.map((field) => (
+                  {filtered.map((field, idx) => (
                     <button
                       key={field}
                       onClick={() => toggle(field)}
                       onMouseEnter={() => setHoveredField(field)}
                       onMouseLeave={() => setHoveredField(null)}
-                      className={`flex items-center gap-3 p-3 rounded-xl transition-all text-left ${selected.has(field)
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "hover:bg-secondary/50 text-foreground/70"
+                      className={`flex items-center gap-3 p-3 m-1 rounded-xl transition-all text-left group/field animate-in slide-in-from-left-2 duration-300 ${selected.has(field)
+                        ? "bg-primary text-primary-foreground font-bold shadow-lg border-primary scale-[1.01]"
+                        : "hover:bg-secondary text-foreground"
                         }`}
+                      style={{ animationDelay: `${Math.min(idx * 20, 200)}ms` }}
                     >
-                      {selected.has(field) ? <CheckSquare size={18} /> : <Square size={18} className="opacity-40" />}
-                      <span className="truncate flex-1 text-sm">
+                      {selected.has(field) ? (
+                        <CheckSquare size={18} className="animate-in zoom-in duration-200" />
+                      ) : (
+                        <Square size={18} className="text-muted-foreground group-hover/field:text-primary transition-colors" />
+                      )}
+                      <span className="truncate flex-1 text-sm font-medium">
                         {getFieldLabel(field)}
                       </span>
                     </button>
@@ -111,32 +116,32 @@ export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
             </div>
           </div>
 
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block px-1">Live Preview</label>
-            <div className="glass bg-primary/5 border-primary/10 rounded-2xl p-5 h-full min-h-[200px] flex flex-col relative group">
-              <div className="absolute top-4 right-4 text-primary/30 group-hover:text-primary/50 transition-colors">
-                <Eye size={20} />
+          <div className="md:col-span-2 flex flex-col">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block px-1 mb-2">Live Preview</label>
+            <div className="glass bg-card border-border/50 rounded-2xl p-6 h-[400px] relative group overflow-y-auto custom-scrollbar shadow-sm">
+              <div className="absolute top-6 right-6 text-primary group-hover:scale-110 transition-transform duration-300">
+                <Eye size={20} className="animate-pulse" />
               </div>
 
               {hoveredField ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest leading-none">Field ID</p>
-                    <p className="text-xs font-mono break-all font-medium">{hoveredField}</p>
+                <div key={hoveredField} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none">Field ID</p>
+                    <p className="text-xs font-mono break-all font-bold bg-muted p-3 rounded-lg border border-border">{hoveredField}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest leading-none">Sample Content</p>
-                    <div className="text-sm leading-relaxed text-foreground/80 break-words line-clamp-6">
-                      {sampleValue || <span className="text-muted-foreground/50 italic">Empty or null</span>}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none">Sample Content</p>
+                    <div className="text-sm leading-relaxed text-foreground font-semibold break-words bg-muted/50 p-4 rounded-lg border border-border">
+                      {sampleValue || <span className="text-muted-foreground italic font-normal">Empty or null</span>}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-6 gap-3 text-muted-foreground/40">
-                  <div className="w-12 h-12 rounded-full border-2 border-dashed border-current flex items-center justify-center">
-                    <Search size={20} />
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-5 text-muted-foreground">
+                  <div className="w-16 h-16 rounded-full border-2 border-dashed border-primary flex items-center justify-center animate-bounce-slow">
+                    <Search size={24} className="text-primary" />
                   </div>
-                  <p className="text-xs italic">Hover over a field to preview its content from your WordPress site.</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed text-foreground">Hover Any Field<br />to Preview</p>
                 </div>
               )}
             </div>

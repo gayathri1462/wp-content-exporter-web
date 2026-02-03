@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import CustomSelect from "@/components/ui/CustomSelect";
 import { fetchPostTypes } from "@/lib/exporterUtils";
 import { Layers, ChevronRight, Loader2 } from "lucide-react";
 
@@ -20,6 +21,7 @@ export default function PostTypeSelector({ endpoint, token, onSelect }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -76,35 +78,30 @@ export default function PostTypeSelector({ endpoint, token, onSelect }: Props) {
           </p>
         </header>
 
-        <div className="relative">
-          <select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-            className="w-full appearance-none border border-border/50 bg-background/50 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 cursor-pointer"
-          >
-            {Object.entries(postTypes).map(([key, meta]) => (
-              <option key={key} value={key} className="bg-background">
-                {(meta.name as string) || key}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-muted-foreground">
-            <ChevronRight size={16} className="rotate-90" />
-          </div>
-        </div>
+        <CustomSelect
+          value={selected}
+          options={Object.entries(postTypes).map(([key, meta]) => ({
+            key,
+            label: (meta.name as string) || key,
+          }))}
+          onChange={setSelected}
+          onOpenChange={setIsSelectOpen}
+        />
 
-        <Button
-          onClick={handleSelect}
-          disabled={submitting || !selected}
-          variant="primary"
-          className="w-full font-bold h-12"
-        >
-          {submitting ? (
-            <span className="flex items-center gap-2">
-              <Loader2 size={18} className="animate-spin" /> Processing...
-            </span>
-          ) : "Next: Select Fields"}
-        </Button>
+        {!isSelectOpen && (
+          <Button
+            onClick={handleSelect}
+            disabled={submitting || !selected}
+            variant="primary"
+            className="w-full font-bold h-12 animate-in fade-in slide-in-from-top-2 duration-300"
+          >
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 size={18} className="animate-spin" /> Processing...
+              </span>
+            ) : "Next: Select Fields"}
+          </Button>
+        )}
 
         {error && (
           <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs text-center">
@@ -112,6 +109,6 @@ export default function PostTypeSelector({ endpoint, token, onSelect }: Props) {
           </div>
         )}
       </div>
-    </Card>
+    </Card >
   );
 }
