@@ -84,14 +84,33 @@ export async function fetchPostsPage(endpoint: string, postType: string, page = 
   return { items: json as JsonObject[], totalPages };
 }
 
-export async function fetchAllPosts(endpoint: string, postType: string, headers?: Record<string, string>, perPage = 100) {
+export async function fetchAllPosts(
+  endpoint: string,
+  postType: string,
+  headers?: Record<string, string>,
+  perPage = 100,
+  concurrency = 5
+) {
+  // Fetch first page to get total count
   const first = await fetchPostsPage(endpoint, postType, 1, perPage, headers);
   const result: JsonObject[] = [...first.items];
-  const pages = first.totalPages;
-  for (let p = 2; p <= pages; p++) {
-    const page = await fetchPostsPage(endpoint, postType, p, perPage, headers);
-    result.push(...page.items);
+  const totalPages = first.totalPages;
+
+  // If only 1 page, return early
+  if (totalPages <= 1) return result;
+
+  // Fetch remaining pages in batches to avoid overwhelming the server
+  const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+
+  for (let i = 0; i < remainingPages.length; i += concurrency) {
+    const batch = remainingPages.slice(i, i + concurrency);
+    const batchPromises = batch.map((pageNum) =>
+      fetchPostsPage(endpoint, postType, pageNum, perPage, headers)
+    );
+    const batchResults = await Promise.all(batchPromises);
+    batchResults.forEach((page) => result.push(...page.items));
   }
+
   return result;
 }
 
