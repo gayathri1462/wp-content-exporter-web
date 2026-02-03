@@ -81,7 +81,7 @@ export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Available Fields</label>
               <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{selected.size} / {fields.length}</span>
             </div>
-            <div className="glass bg-background border-border/50 rounded-2xl p-2 h-[400px] overflow-y-auto custom-scrollbar shadow-inner">
+            <div className="glass bg-background border-border/50 rounded-2xl p-2 h-[320px] md:h-[400px] lg:h-[400px] overflow-y-auto custom-scrollbar shadow-inner">
               {filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground gap-2 animate-in fade-in duration-500">
                   <Search size={32} />
@@ -92,12 +92,15 @@ export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
                   {filtered.map((field, idx) => (
                     <button
                       key={field}
-                      onClick={() => toggle(field)}
+                      onClick={() => {
+                        toggle(field);
+                        setHoveredField(field);
+                      }}
                       onMouseEnter={() => setHoveredField(field)}
                       onMouseLeave={() => setHoveredField(null)}
                       className={`flex items-center gap-3 p-3 m-1 rounded-xl transition-all text-left group/field animate-in slide-in-from-left-2 duration-300 ${selected.has(field)
                         ? "bg-primary text-primary-foreground font-bold shadow-lg border-primary scale-[1.01]"
-                        : "hover:bg-secondary text-foreground"
+                        : "hover:bg-secondary text-foreground font-medium"
                         }`}
                       style={{ animationDelay: `${Math.min(idx * 20, 200)}ms` }}
                     >
@@ -118,7 +121,7 @@ export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
 
           <div className="md:col-span-2 flex flex-col">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block px-1 mb-2">Live Preview</label>
-            <div className="glass bg-card border-border/50 rounded-2xl p-6 h-[400px] relative group overflow-y-auto custom-scrollbar shadow-sm">
+            <div className="glass bg-card border-border/50 rounded-2xl p-6 h-[280px] md:h-[400px] lg:h-[400px] relative group overflow-y-auto custom-scrollbar shadow-sm">
               <div className="absolute top-6 right-6 text-primary group-hover:scale-110 transition-transform duration-300">
                 <Eye size={20} className="animate-pulse" />
               </div>
@@ -141,7 +144,7 @@ export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
                   <div className="w-16 h-16 rounded-full border-2 border-dashed border-primary flex items-center justify-center animate-bounce-slow">
                     <Search size={24} className="text-primary" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed text-foreground">Hover Any Field<br />to Preview</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed text-foreground">Hover or Tap Any Field<br />to Preview</p>
                 </div>
               )}
             </div>

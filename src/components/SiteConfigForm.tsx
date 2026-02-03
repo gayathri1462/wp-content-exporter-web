@@ -134,7 +134,7 @@ export default function SiteConfigForm({ onSubmit }: Props) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 pt-2">
           <Button
             onClick={testConnection}
             disabled={testing || !endpoint}

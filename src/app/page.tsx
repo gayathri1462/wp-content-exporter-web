@@ -73,8 +73,8 @@ export default function ExporterPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-background selection:bg-primary/30 font-sans antialiased text-foreground">
-      {/* Left Sidebar - Refined Ratio (Fixed width for better balance) */}
-      <aside className="lg:w-[300px] xl:w-[320px] bg-card border-r-2 border-border min-h-[300px] lg:min-h-screen p-8 xl:p-10 flex flex-col justify-between shrink-0">
+      {/* Left Sidebar - Refined Ratio (Fixed width for desktop) */}
+      <aside className="hidden lg:flex lg:w-[300px] xl:w-[320px] bg-card border-r-2 border-border min-h-screen p-8 xl:p-10 flex-col justify-between shrink-0">
         <div className="space-y-12">
           {/* Header - Designer Polish */}
           <header className="flex flex-col gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
@@ -94,7 +94,6 @@ export default function ExporterPage() {
           {/* Nav Stepper - Swiss Style */}
           <nav className="space-y-0 border-t border-border/50">
             {STEPS.map((s, idx) => {
-              const Icon = s.icon;
               const isActive = s.id === step;
               const isCompleted = idx < currentStepIndex;
               const isPending = idx > currentStepIndex;
@@ -141,6 +140,46 @@ export default function ExporterPage() {
           </div>
         </div>
       </aside>
+
+      {/* Mobile Header - Only visible on small screens */}
+      <header className="lg:hidden bg-card border-b-2 border-border p-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center bg-foreground text-background font-black text-sm rounded-lg shadow-md">W</div>
+            <h1 className="text-sm font-black tracking-tighter uppercase leading-none">Exporter<span className="text-primary italic">.</span></h1>
+          </div>
+          <ThemeToggle />
+        </div>
+
+        {/* Horizontal Mobile Stepper */}
+        <div className="flex items-center justify-between relative px-2">
+          {STEPS.map((s, idx) => {
+            const isActive = s.id === step;
+            const isCompleted = idx < currentStepIndex;
+            const isPending = idx > currentStepIndex;
+
+            return (
+              <React.Fragment key={s.id}>
+                <button
+                  disabled={isPending}
+                  onClick={() => setStep(s.id)}
+                  className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${isActive
+                      ? "bg-primary border-primary text-primary-foreground scale-110 shadow-lg"
+                      : isCompleted
+                        ? "bg-primary/20 border-primary text-primary"
+                        : "bg-muted border-border text-muted-foreground"
+                    }`}
+                >
+                  {isCompleted ? <CheckCircle2 size={14} /> : idx + 1}
+                </button>
+                {idx < STEPS.length - 1 && (
+                  <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-primary" : "bg-border"}`} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </header>
 
       {/* Right Content - Full Focus Area */}
       <main className="flex-1 h-screen flex flex-col bg-background relative overflow-hidden">
