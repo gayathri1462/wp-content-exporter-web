@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { exportPostsToCsv, type JsonObject } from "@/lib/exporterUtils";
+import { exportPostsToCsv } from "@/lib/exporterUtils";
 import Button from "@/components/ui/Button";
+import { Download, Loader2 } from "lucide-react";
 
 type Props = {
   endpoint: string;
@@ -19,17 +20,17 @@ export default function ExportButton({ endpoint, postType, fields, token }: Prop
     setLoading(true);
     try {
       const csv = await exportPostsToCsv(endpoint, postType, fields, token);
-      // Create blob and download
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'wordpress-export.csv';
+      a.download = `wp-export-${postType}-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (err) {
+      console.error(err);
       alert(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
@@ -41,8 +42,19 @@ export default function ExportButton({ endpoint, postType, fields, token }: Prop
       onClick={handleExport}
       disabled={!endpoint || !postType || fields.length === 0 || loading}
       variant="primary"
+      className="w-full h-14 text-lg gap-2"
     >
-      {loading ? "Exporting…" : `Download CSV (${fields.length} fields)`}
+      {loading ? (
+        <>
+          <Loader2 className="animate-spin" size={20} />
+          <span>Generating CSV...</span>
+        </>
+      ) : (
+        <>
+          <Download size={20} />
+          <span>Download CSV</span>
+        </>
+      )}
     </Button>
   );
 }

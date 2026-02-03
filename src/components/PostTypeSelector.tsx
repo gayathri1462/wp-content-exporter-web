@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { fetchPostTypes } from "@/lib/exporterUtils";
+import { Layers, ChevronRight, Loader2 } from "lucide-react";
 
 type PostTypeMetadata = { name?: string } & Record<string, unknown>;
 
@@ -28,7 +29,6 @@ export default function PostTypeSelector({ endpoint, token, onSelect }: Props) {
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
         const types = await fetchPostTypes(endpoint, headers);
         setPostTypes(types);
-        // Pre-select first available type
         const first = Object.keys(types)[0];
         if (first) setSelected(first);
       } catch (err) {
@@ -54,29 +54,63 @@ export default function PostTypeSelector({ endpoint, token, onSelect }: Props) {
     }
   }
 
-  if (loading) return <Card><div className="text-sm">Loading post types…</div></Card>;
+  if (loading) {
+    return (
+      <Card className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+        <Loader2 className="text-primary animate-spin" size={32} />
+        <p className="text-sm font-medium text-muted-foreground">Loading post types...</p>
+      </Card>
+    );
+  }
 
   return (
-    <Card>
-      <div className="space-y-3">
-        <label className="block text-sm font-medium">Post Type</label>
-        <select
-          value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-          className="w-full rounded-md border px-3 py-2"
-        >
-          {Object.entries(postTypes).map(([key, meta]) => (
-            <option key={key} value={key}>
-              {(meta.name as string) || key}
-            </option>
-          ))}
-        </select>
+    <Card className="animate-in fade-in zoom-in-95 duration-500">
+      <div className="space-y-6">
+        <header>
+          <div className="flex items-center gap-2 text-primary mb-1">
+            <Layers size={18} />
+            <h3 className="font-bold text-lg">Select Content Type</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Choose the type of WordPress content you want to export.
+          </p>
+        </header>
 
-        <Button onClick={handleSelect} disabled={submitting || !selected} variant="primary">
-          {submitting ? "Loading…" : "Next: Select Fields"}
+        <div className="relative">
+          <select
+            value={selected}
+            onChange={(e) => setSelected(e.target.value)}
+            className="w-full appearance-none border border-border/50 bg-background/50 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 cursor-pointer"
+          >
+            {Object.entries(postTypes).map(([key, meta]) => (
+              <option key={key} value={key} className="bg-background">
+                {(meta.name as string) || key}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-muted-foreground">
+            <ChevronRight size={16} className="rotate-90" />
+          </div>
+        </div>
+
+        <Button
+          onClick={handleSelect}
+          disabled={submitting || !selected}
+          variant="primary"
+          className="w-full font-bold h-12"
+        >
+          {submitting ? (
+            <span className="flex items-center gap-2">
+              <Loader2 size={18} className="animate-spin" /> Processing...
+            </span>
+          ) : "Next: Select Fields"}
         </Button>
 
-        {error && <div className="text-sm text-red-600">{error}</div>}
+        {error && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs text-center">
+            {error}
+          </div>
+        )}
       </div>
     </Card>
   );
