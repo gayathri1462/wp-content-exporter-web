@@ -16,9 +16,15 @@
   - A scroll-locked window frame for an "Application" feel.
 - **Fully Responsive**: Optimized for every device, featuring a vertical sidebar on desktop and a compact horizontal stepper on mobile.
 
-![Mobile View](https://raw.githubusercontent.com/gayathridn/wp-content-exporter-web/main/public/mobile_preview.png)
-<!-- slide -->
-![Desktop View](https://raw.githubusercontent.com/gayathridn/wp-content-exporter-web/main/public/desktop_preview.png)
+## 💻 Web & 📱 Mobile Version
+
+The application is a **fully responsive web version** of the WP Content Exporter, which can be used on any browser. It dynamically adapts its layout for a premium experience on both desktop and mobile devices.
+
+### Desktop Experience
+![Desktop View](public/desktop-preview.png)
+
+### Mobile & Tablet Experience
+![Mobile View](public/mobile-preview.png)
 
 ### 1. Installation
 ```bash
