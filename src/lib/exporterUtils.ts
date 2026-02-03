@@ -99,3 +99,56 @@ export function inferFieldsFromPost(post: JsonObject): string[] {
   const flat = flattenObject(post);
   return Object.keys(flat).sort();
 }
+
+/**
+ * Export WordPress posts to CSV using the wp-content-exporter package.
+ * This is the primary export method - uses the package for production-grade CSV generation.
+ */
+export async function exportPostsToCsv(
+  endpoint: string,
+  postType: string,
+  fields: string[],
+  token?: string,
+  perPage: number = 100
+): Promise<string> {
+  if (typeof window === 'undefined') {
+    throw new Error('exportPostsToCsv only works in the browser');
+  }
+
+  try {
+    // Dynamic import ensures Node.js code isn't bundled for the browser
+    const pkg = await import('wp-content-exporter');
+    if (!pkg || typeof pkg.exportToCSV !== 'function') {
+      throw new Error('wp-content-exporter package not available');
+    }
+
+    const csv = await pkg.exportToCSV({
+      endpoint,
+      postType,
+      fields,
+      auth: token ? { token } : undefined,
+      perPage,
+    });
+
+    return csv;
+  } catch (err) {
+    // Fallback: fetch all posts manually and generate CSV
+    console.warn('wp-content-exporter failed, falling back to manual export:', err);
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+    const posts = await fetchAllPosts(endpoint, postType, headers, perPage);
+    const rows = pickFields(posts, fields);
+    // Generate CSV manually
+    const headerLine = fields.join(',');
+    const dataLines = rows.map((row) =>
+      fields.map((f) => {
+        const val = row[f] ?? '';
+        // Escape quotes and wrap in quotes if contains comma/newline
+        const escaped = String(val).replace(/\"/g, '""');
+        return escaped.includes(',') || escaped.includes('\n') || escaped.includes('"')
+          ? `"${escaped}"`
+          : escaped;
+      }).join(',')
+    );
+    return [headerLine, ...dataLines].join('\n');
+  }
+}

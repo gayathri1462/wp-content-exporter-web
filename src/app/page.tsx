@@ -5,22 +5,24 @@ import SiteConfigForm from "@/components/SiteConfigForm";
 import PostTypeSelector from "@/components/PostTypeSelector";
 import FieldSelector from "@/components/FieldSelector";
 import ExportButton from "@/components/ExportButton";
-import { fetchAllPosts, inferFieldsFromPost, type JsonObject } from "@/lib/exporterUtils";
+import { fetchAllPosts, inferFieldsFromPost } from "@/lib/exporterUtils";
 
 type Step = "site" | "postType" | "fields" | "export";
 
 export default function ExporterPage() {
   const [step, setStep] = useState<Step>("site");
   const [endpoint, setEndpoint] = useState("");
-  const [headers, setHeaders] = useState<Record<string, string>>({});
+  const [token, setToken] = useState("");
   const [postType, setPostType] = useState("");
   const [fields, setFields] = useState<string[]>([]);
-  const [rows, setRows] = useState<JsonObject[]>([]);
   const [status, setStatus] = useState("");
 
   async function handleSiteConfig(ep: string, hdrs: Record<string, string>) {
     setEndpoint(ep);
-    setHeaders(hdrs);
+    // Extract token from Authorization header if present
+    const authHeader = hdrs.Authorization || "";
+    const tokenValue = authHeader.replace(/^Bearer\s+/, "");
+    setToken(tokenValue);
     setStep("postType");
   }
 
@@ -28,6 +30,7 @@ export default function ExporterPage() {
     setPostType(pt);
     setStatus("Fetching sample post…");
     try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       const sample = await fetchAllPosts(endpoint, pt, headers, 1);
       if (sample.length === 0) throw new Error("No posts found");
       const inferred = inferFieldsFromPost(sample[0]);
@@ -40,16 +43,8 @@ export default function ExporterPage() {
   }
 
   async function handleFieldsSelect(selected: string[]) {
-    setStatus("Fetching all posts…");
-    try {
-      const all = await fetchAllPosts(endpoint, postType, headers);
-      setRows(all);
-      setFields(selected);
-      setStep("export");
-      setStatus("");
-    } catch (err) {
-      setStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
-    }
+    setFields(selected);
+    setStep("export");
   }
 
   return (
@@ -70,7 +65,7 @@ export default function ExporterPage() {
               <h2 className="text-lg font-semibold mb-3">✓ Site Connected</h2>
               <PostTypeSelector
                 endpoint={endpoint}
-                headers={headers}
+                token={token}
                 onSelect={handlePostTypeSelect}
               />
             </div>
@@ -86,7 +81,7 @@ export default function ExporterPage() {
           {step === "export" && (
             <div>
               <h2 className="text-lg font-semibold mb-3">✓ Ready to Export</h2>
-              <ExportButton rows={rows} fields={fields} />
+              <ExportButton endpoint={endpoint} postType={postType} fields={fields} token={token} />
             </div>
           )}
         </div>

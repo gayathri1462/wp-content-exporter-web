@@ -9,11 +9,11 @@ type PostTypeMetadata = { name?: string } & Record<string, unknown>;
 
 type Props = {
   endpoint: string;
-  headers: Record<string, string>;
+  token?: string;
   onSelect: (postType: string) => Promise<void>;
 };
 
-export default function PostTypeSelector({ endpoint, headers, onSelect }: Props) {
+export default function PostTypeSelector({ endpoint, token, onSelect }: Props) {
   const [postTypes, setPostTypes] = useState<Record<string, PostTypeMetadata>>({});
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(true);
@@ -25,6 +25,7 @@ export default function PostTypeSelector({ endpoint, headers, onSelect }: Props)
       setLoading(true);
       setError(null);
       try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
         const types = await fetchPostTypes(endpoint, headers);
         setPostTypes(types);
         // Pre-select first available type
@@ -38,7 +39,7 @@ export default function PostTypeSelector({ endpoint, headers, onSelect }: Props)
       }
     }
     load();
-  }, [endpoint, headers]);
+  }, [endpoint, token]);
 
   async function handleSelect() {
     if (!selected) return;
