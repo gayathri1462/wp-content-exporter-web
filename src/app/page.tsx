@@ -23,7 +23,8 @@ export default function ExporterPage() {
   const [endpoint, setEndpoint] = useState("");
   const [token, setToken] = useState("");
   const [postType, setPostType] = useState("");
-  const [fields, setFields] = useState<string[]>([]);
+  const [availableFields, setAvailableFields] = useState<string[]>([]);
+  const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [sampleData, setSampleData] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("");
 
@@ -46,7 +47,8 @@ export default function ExporterPage() {
       if (sample.length === 0) throw new Error("No posts found for this type.");
       const inferred = inferFieldsFromPost(sample[0]);
       const flattened = flattenObject(sample[0]);
-      setFields(inferred);
+      setAvailableFields(inferred);
+      setSelectedFields([]); // Start with empty selection
       setSampleData(flattened);
       setStep("fields");
       setStatus("Successfully configured fields!");
@@ -57,7 +59,7 @@ export default function ExporterPage() {
   }
 
   async function handleFieldsSelect(selected: string[]) {
-    setFields(selected);
+    setSelectedFields(selected);
     setStep("export");
   }
 
@@ -164,10 +166,10 @@ export default function ExporterPage() {
                   disabled={isPending}
                   onClick={() => setStep(s.id)}
                   className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${isActive
-                      ? "bg-primary border-primary text-primary-foreground scale-110 shadow-lg"
-                      : isCompleted
-                        ? "bg-primary/20 border-primary text-primary"
-                        : "bg-muted border-border text-muted-foreground"
+                    ? "bg-primary border-primary text-primary-foreground scale-110 shadow-lg"
+                    : isCompleted
+                      ? "bg-primary/20 border-primary text-primary"
+                      : "bg-muted border-border text-muted-foreground"
                     }`}
                 >
                   {isCompleted ? <CheckCircle2 size={14} /> : idx + 1}
@@ -219,7 +221,7 @@ export default function ExporterPage() {
 
             {step === "fields" && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <FieldSelector fields={fields} sampleData={sampleData} onSelect={handleFieldsSelect} />
+                <FieldSelector fields={availableFields} initialSelected={selectedFields} sampleData={sampleData} onSelect={handleFieldsSelect} />
               </div>
             )}
 
@@ -237,7 +239,7 @@ export default function ExporterPage() {
                   </p>
                 </div>
                 <div className="w-full max-w-md pt-4">
-                  <ExportButton endpoint={endpoint} postType={postType} fields={fields} token={token} />
+                  <ExportButton endpoint={endpoint} postType={postType} fields={selectedFields} token={token} />
                 </div>
                 <button
                   onClick={() => setStep("fields")}

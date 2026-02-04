@@ -7,12 +7,13 @@ import { Search, Eye, Filter, CheckSquare, Square, Trash2 } from "lucide-react";
 
 type Props = {
   fields: string[];
+  initialSelected?: string[];
   sampleData?: Record<string, string>;
   onSelect: (selected: string[]) => void;
 };
 
-export default function FieldSelector({ fields, sampleData, onSelect }: Props) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(fields.slice(0, 10)));
+export default function FieldSelector({ fields, initialSelected, sampleData, onSelect }: Props) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(initialSelected || []));
   const [search, setSearch] = useState("");
   const [hoveredField, setHoveredField] = useState<string | null>(null);
 
