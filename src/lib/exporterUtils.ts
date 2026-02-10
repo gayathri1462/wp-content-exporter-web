@@ -128,7 +128,8 @@ export async function exportPostsToCsv(
   postType: string,
   fields: string[],
   token?: string,
-  perPage: number = 100
+  perPage: number = 100,
+  onProgress?: (current: number, total: number) => void
 ): Promise<string> {
   if (typeof window === 'undefined') {
     throw new Error('exportPostsToCsv only works in the browser');
@@ -151,23 +152,57 @@ export async function exportPostsToCsv(
 
     return csv;
   } catch (err) {
-    // Fallback: fetch all posts manually and generate CSV
-    console.warn('wp-content-exporter failed, falling back to manual export:', err);
+    // Fallback: Memory-efficient manual export with streaming
+    console.warn('wp-content-exporter failed, falling back to streaming export:', err);
     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-    const posts = await fetchAllPosts(endpoint, postType, headers, perPage);
-    const rows = pickFields(posts, fields);
-    // Generate CSV manually
-    const headerLine = fields.join(',');
-    const dataLines = rows.map((row) =>
-      fields.map((f) => {
-        const val = row[f] ?? '';
-        // Escape quotes and wrap in quotes if contains comma/newline
-        const escaped = String(val).replace(/\"/g, '""');
+
+    // Use streaming approach for large datasets
+    const chunks: string[] = [];
+
+    // Add CSV header
+    chunks.push(fields.join(',') + '\n');
+
+    // Fetch first page to get total
+    const firstPage = await fetchPostsPage(endpoint, postType, 1, perPage, headers);
+    const totalPages = firstPage.totalPages;
+    let postsProcessed = 0;
+
+    // Process first page
+    for (const post of firstPage.items) {
+      const flat = flattenObject(post);
+      const row = fields.map(f => {
+        const val = flat[f] ?? '';
+        const escaped = String(val).replace(/"/g, '""');
         return escaped.includes(',') || escaped.includes('\n') || escaped.includes('"')
           ? `"${escaped}"`
           : escaped;
-      }).join(',')
-    );
-    return [headerLine, ...dataLines].join('\n');
+      }).join(',');
+      chunks.push(row + '\n');
+      postsProcessed++;
+    }
+
+    onProgress?.(1, totalPages);
+
+    // Process remaining pages one at a time to control memory
+    for (let page = 2; page <= totalPages; page++) {
+      const pageData = await fetchPostsPage(endpoint, postType, page, perPage, headers);
+
+      for (const post of pageData.items) {
+        const flat = flattenObject(post);
+        const row = fields.map(f => {
+          const val = flat[f] ?? '';
+          const escaped = String(val).replace(/"/g, '""');
+          return escaped.includes(',') || escaped.includes('\n') || escaped.includes('"')
+            ? `"${escaped}"`
+            : escaped;
+        }).join(',');
+        chunks.push(row + '\n');
+        postsProcessed++;
+      }
+
+      onProgress?.(page, totalPages);
+    }
+
+    return chunks.join('');
   }
 }
