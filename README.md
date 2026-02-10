@@ -7,7 +7,8 @@
 
 ## ✨ Features
 
-- **Dynamic Connection**: Effortlessly connect to any WordPress site using standard or Bearer-token authentication.
+- **Secure Server-Side Proxy**: Connection testing is routed through a Next.js API route (`/api/test-wp`) to bypass browser CORS restrictions and securely handle WordPress authentication.
+- **Dynamic Connection**: Effortlessly connect to any WordPress site using Application Password authentication or public access.
 - **Smart Configuration**: Filter through complex WordPress data structures with a high-performance, searchable field selector.
 - **Live Preview**: Instantly preview field values on hover (desktop) or tap (mobile) before exporting.
 - **Balanced Modern UI**: A sleek, glassmorphic design system that features:
