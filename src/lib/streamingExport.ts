@@ -39,6 +39,7 @@ export async function* streamCsvRows(
     // Fetch first page to get total
     const firstPage = await fetchPostsPage(endpoint, postType, 1, perPage, headers);
     const totalPages = firstPage.totalPages;
+    const totalItems = firstPage.totalItems;
     let postsProcessed = 0;
 
     // Process first page
@@ -54,7 +55,7 @@ export async function* streamCsvRows(
         currentPage: 1,
         totalPages,
         postsProcessed,
-        estimatedTotal: totalPages * perPage,
+        estimatedTotal: totalItems || totalPages * perPage,
     });
 
     // Process remaining pages
@@ -75,7 +76,7 @@ export async function* streamCsvRows(
             currentPage: page,
             totalPages,
             postsProcessed,
-            estimatedTotal: totalPages * perPage,
+            estimatedTotal: totalItems || totalPages * perPage,
         });
     }
 }

@@ -106,7 +106,7 @@ export default function SiteConfigForm({ onSubmit }: Props) {
         <div className="space-y-4">
           <Input
             label="Site URL"
-            placeholder="example.com"
+            placeholder="https://your-wordpress-site.com/"
             value={endpoint}
             onChange={(e) => setEndpoint(e.target.value)}
             className="font-medium"

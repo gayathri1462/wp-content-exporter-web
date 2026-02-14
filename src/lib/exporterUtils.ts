@@ -80,8 +80,9 @@ export async function fetchPostsPage(endpoint: string, postType: string, page = 
   const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`Failed to fetch posts: ${res.status} ${res.statusText}`);
   const totalPages = Number(res.headers.get('X-WP-TotalPages') ?? 1);
+  const totalItems = Number(res.headers.get('X-WP-Total') ?? 0);
   const json = await res.json();
-  return { items: json as JsonObject[], totalPages };
+  return { items: json as JsonObject[], totalPages, totalItems };
 }
 
 export async function fetchAllPosts(

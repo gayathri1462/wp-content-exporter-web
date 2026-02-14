@@ -69,7 +69,7 @@ export default function ExportForm({ onLoad }: Props) {
         <Input
           value={endpoint}
           onChange={(e) => setEndpoint(e.target.value)}
-          placeholder="https://example.com/wp-json/wp/v2/posts?export=csv"
+          placeholder="https://your-wordpress-site.com/wp-json/wp/v2/posts?export=csv"
         />
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
